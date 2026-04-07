@@ -14,7 +14,7 @@ class Doctor extends Authenticatable
         'nombre', 'genero', 'cedula', 'email', 'password', 'telefono',
         'especialidad_id', 'estado', 'verificado', 'ip_registro', 
         'consent_accepted_at', 'activo', 'foto_url',
-        'direccion', 'whatsapp', 'descripcion', 'horario', 
+        'direccion', 'latitud', 'longitud', 'whatsapp', 'descripcion', 'horario', 
         'servicios', 'especialidades_extra' 
     ];
 
@@ -24,7 +24,7 @@ class Doctor extends Authenticatable
         'servicios' => 'array',             
         'especialidades_extra' => 'array',   
     ];
-
+    protected $with = ['especialidad', 'horarios'];
     protected $hidden = [
         'password',
         'remember_token',
