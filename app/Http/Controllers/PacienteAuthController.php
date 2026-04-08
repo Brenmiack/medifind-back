@@ -8,11 +8,13 @@ use App\Models\Paciente;
 
 class PacienteAuthController extends Controller
 {
-    // --- REGISTRO ---
+   // --- REGISTRO CORREGIDO ---
     public function registroPaciente(Request $request)
     {
         $request->validate([
             'nombre'   => 'required|string|max:150',
+            'paterno'  => 'required|string|max:150',  // 🌟 Agregamos validación
+            'materno'  => 'nullable|string|max:150', // 🌟 Agregamos validación
             'email'    => 'required|email|unique:pacientes,email',
             'telefono' => 'required|numeric|unique:pacientes,telefono',
             'password' => 'required|min:6',
@@ -23,6 +25,8 @@ class PacienteAuthController extends Controller
 
         $paciente = Paciente::create([
             'nombre'   => $request->nombre,
+            'paterno'  => $request->paterno,  // 🌟 ¡ESTO ES LO QUE FALTABA!
+            'materno'  => $request->materno,  // 🌟 ¡Y ESTO TAMBIÉN!
             'email'    => strtolower(trim($request->email)),
             'telefono' => $request->telefono,
             'password' => Hash::make($request->password), 
@@ -47,14 +51,14 @@ class PacienteAuthController extends Controller
         // 🚨 ALARMA 1
         if (!$paciente) {
             return response()->json([
-                'mensaje' => 'ERROR 1: El correo no existe en la base de datos.'
+                'mensaje' => 'ERROR 1: El correo que ingresaste no es el correcto'
             ], 401);
         }
 
         // 🚨 ALARMA 2
         if (!\Illuminate\Support\Facades\Hash::check($request->password, $paciente->password)) {
             return response()->json([
-                'mensaje' => 'ERROR 2: La contraseña no coincide con la encriptada.'
+                'mensaje' => 'ERROR 2: La contraseña no coincide con la registrada'
             ], 401);
         }
 
@@ -63,7 +67,7 @@ class PacienteAuthController extends Controller
             $token = $paciente->createToken('paciente_token')->plainTextToken;
         } catch (\Exception $e) {
             return response()->json([
-                'mensaje' => 'ERROR 3: Falta HasApiTokens en el modelo. Detalle: ' . $e->getMessage()
+                'mensaje' => 'ERROR 3: ' . $e->getMessage()
             ], 500);
         }
 

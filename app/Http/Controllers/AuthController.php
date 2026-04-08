@@ -203,18 +203,29 @@ public function me(Request $request)
             'horarios.*.hora_fin'    => 'required_with:horarios|date_format:H:i',
         ]);
 
-        // 2. Actualizamos datos generales del doctor
-        $doctor->update([
-            'telefono'            => $request->telefono,
-            'whatsapp'            => $request->whatsapp,
-            'direccion'           => $request->direccion,
-            'descripcion'         => $request->descripcion,
-            'horario'             => $request->horario,
-            'servicios'           => $request->servicios,
+        // 2. Asignación masiva estándar (sin lat y lng)
+        $doctor->fill([
+            'telefono'             => $request->telefono,
+            'whatsapp'             => $request->whatsapp,
+            'direccion'            => $request->direccion,
+            'descripcion'          => $request->descripcion,
+            'horario'              => $request->horario,
+            'servicios'            => $request->servicios,
             'especialidades_extra' => $request->especialidades_extra,
         ]);
 
-        // 3. Guardamos horarios en la tabla horarios (borramos y reinsertamos)
+        // 3. Asignación directa a prueba de mapas (recortando los decimales para HeidiSQL)
+        if ($request->has('latitud') && $request->latitud != null) {
+            $doctor->latitud = round((float) $request->latitud, 8);
+        }
+        
+        if ($request->has('longitud') && $request->longitud != null) {
+            $doctor->longitud = round((float) $request->longitud, 8);
+        }
+
+        $doctor->save();
+
+        // 4. Guardamos horarios en la tabla horarios (borramos y reinsertamos)
         if ($request->has('horarios')) {
             \App\Models\Horario::where('doctor_id', $doctor->id)->delete();
             foreach ($request->horarios as $h) {
@@ -229,7 +240,7 @@ public function me(Request $request)
 
         return response()->json([
             'mensaje' => 'Perfil actualizado correctamente',
-            'doctor'  => $doctor->load(['especialidad', 'horarios'])
+            'doctor'  => $doctor->refresh()->load(['especialidad', 'horarios'])
         ]);
     }
 

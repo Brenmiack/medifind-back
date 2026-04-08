@@ -46,33 +46,31 @@ class DoctorController extends Controller
         return response()->json($request->user()->load('especialidad'));
     }
 
-public function update(Request $request)
+// En DoctorController.php (Esta función actualmente no se usa para el perfil web)
+    public function update(Request $request)
     {
         $doctor = $request->user();
 
-        // 1. Guardado DIRECTO a la tabla (Ignora fillables, ignores caches, ignora todo)
-        // Usamos el Query Builder de Laravel
-        $query = \DB::table('doctors')->where('id', $doctor->id)->update([
-            'nombre'      => $request->nombre,
-            'telefono'    => $request->telefono,
-            'whatsapp'    => $request->whatsapp,
-            'direccion'   => $request->direccion,
-            'descripcion' => $request->descripcion,
-            'latitud'     => $request->latitud,  // Aquí va el número directo
-            'longitud'    => $request->longitud, // Aquí va el número directo
-            'updated_at'  => now()
-        ]);
+        $doctor->update($request->only([
+            'nombre',
+            'telefono', 
+            'whatsapp', 
+            'direccion', 
+            'descripcion', 
+            'latitud', 
+            'longitud',
+            'servicios',
+            'especialidades_extra',
+            'horario'
+        ]));
 
-        // 2. Si cambió la contraseña, la actualizamos aparte
         if ($request->filled('password')) {
-            \DB::table('doctors')->where('id', $doctor->id)->update([
-                'password' => \Hash::make($request->password)
-            ]);
+            $doctor->password = \Hash::make($request->password);
+            $doctor->save();
         }
 
         return response()->json([
-            // Este mensaje nos dirá si la base de datos aceptó el cambio (1 = sí, 0 = no cambió nada)
-            'mensaje' => '¡Perfil actualizado con éxito!',
+            'mensaje' => 'Perfil actualizado (desde DoctorController)',
             'doctor'  => $doctor->refresh()->load('especialidad'),
         ]);
     }
