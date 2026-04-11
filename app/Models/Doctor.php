@@ -48,4 +48,14 @@ class Doctor extends Authenticatable
     {
         return $this->hasMany(Cita::class);
     }
+
+public function resenas()
+{
+    return $this->hasMany(\App\Models\Resena::class, 'doctor_id');
+}
+
+
+
+
+
 }

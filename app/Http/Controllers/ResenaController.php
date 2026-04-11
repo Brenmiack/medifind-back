@@ -83,4 +83,12 @@ class ResenaController extends Controller
 
         return response()->json(['mensaje' => 'Respuesta guardada', 'resena' => $resena]);
     }
+    public function resenasPorDoctor($id)
+{
+    $resenas = \App\Models\Resena::where('doctor_id', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json($resenas);
+}
 }

@@ -21,10 +21,14 @@ Route::post('/registro',          [AuthController::class, 'registro']);
 Route::post('/login',             [AuthController::class, 'login']);
 Route::post('/registro-paciente', [PacienteAuthController::class, 'registroPaciente']);
 Route::post('/login-paciente',    [PacienteAuthController::class, 'loginPaciente']);
-
+Route::get('/app/doctores/{id}/resenas', [ResenaController::class, 'resenasPorDoctor']);
 // Catálogo de doctores para la App
 Route::get('/app/doctores', function (Illuminate\Http\Request $request) {
-    $query = App\Models\Doctor::with('especialidad')->where('estado', 'activo');
+    $query = App\Models\Doctor::with('especialidad')
+        ->withAvg('resenas', 'estrellas')
+        ->withCount('resenas')
+        ->where('estado', 'activo');
+
     if ($request->has('especialidad_id')) $query->where('especialidad_id', $request->especialidad_id);
     if ($request->has('nombre')) {
         $busqueda = $request->nombre;
@@ -35,7 +39,12 @@ Route::get('/app/doctores', function (Illuminate\Http\Request $request) {
               });
         });
     }
-    return $query->get();
+
+    return $query->get()->map(function($doc) {
+        $doc->calificacion_promedio = $doc->resenas_avg_estrellas;
+        $doc->total_resenas = $doc->resenas_count;
+        return $doc;
+    });
 });
 
 Route::get('/app/doctores/{id}', function ($id) {
@@ -67,21 +76,28 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/app/resenas',          [ResenaController::class, 'storeDesdeApp']);
     Route::get('/app/mis-resenas',       [ResenaController::class, 'misResenasPaciente']);
 
+
     // --- 💬 CHAT (App y Web) ---
     Route::post('/app/chat/iniciar',         [MensajeController::class, 'iniciarOObtenerChat']);
+        Route::post('/app/chat/enviar',          [MensajeController::class, 'enviarMensajeApp']);
+      Route::get('/app/chat/mis-conversaciones', [MensajeController::class, 'misConversacionesPaciente']);
     Route::get('/app/chat/{conversacion_id}', [MensajeController::class, 'cargarMensajes']);
-    Route::post('/app/chat/enviar',          [MensajeController::class, 'enviarMensajeApp']);
-    Route::post('/chat/{conversacion_id}/leer', [MensajeController::class, 'marcarComoLeido']); // El doctor marca como leído
+
+    Route::post('/chat/{conversacion_id}/leer', [MensajeController::class, 'marcarComoLeido']); 
+    Route::post('/app/chat/{conversacion_id}/leer', [MensajeController::class, 'marcarLeidoPorPaciente']);
+  // El doctor marca como leído
 
     // --- 💻 PANEL DOCTOR (Web) ---
+    Route::get('/doctor/dashboard', [DoctorController::class, 'dashboard']); // 🌟 ¡AGREGA ESTA LÍNEA! 🌟
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/perfil',            [DoctorController::class, 'show']);
     Route::put('/perfil/actualizar', [AuthController::class, 'actualizarPerfil']);
     Route::post('/perfil/foto',      [AuthController::class, 'subirFoto']);
     
     Route::get('/citas',             [CitaController::class, 'index']);
+    Route::post('/citas',        [CitaController::class, 'store']); 
     Route::put('/citas/{id}',        [CitaController::class, 'update']);
-    
+    Route::delete('/citas/{id}', [CitaController::class, 'destroy']);
     Route::get('/mensajes',          [MensajeController::class, 'index']);
     Route::get('/mensajes/{id}',     [MensajeController::class, 'show']);
     Route::post('/mensajes/{id}',    [MensajeController::class, 'reply']);

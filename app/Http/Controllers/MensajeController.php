@@ -44,6 +44,18 @@ class MensajeController extends Controller
         ]);
     }
 
+    public function marcarLeidoPorPaciente(Request $request, $conversacion_id)
+{
+    Mensaje::where('conversacion_id', $conversacion_id)
+           ->where('emisor', 'doctor')
+           ->where('leido', 0)
+           ->update(['leido' => 1]);
+
+    return response()->json(['success' => true]);
+}
+
+
+
     // POST /api/mensajes/{id}  → el doctor responde
     public function reply(Request $request, $id)
     {
@@ -123,4 +135,29 @@ class MensajeController extends Controller
             'mensaje' => $mensaje
         ]);
     }
+
+
+public function misConversacionesPaciente(Request $request)
+{
+    $pacienteId = $request->user()->id;
+
+    $conversaciones = \App\Models\Conversacion::with(['doctor', 'mensajes' => function($q) {
+            $q->latest()->limit(1);
+        }])
+        ->where('paciente_id', $pacienteId)
+        ->latest('updated_at')
+        ->get()
+        ->map(function($conv) use ($pacienteId) {
+            $conv->no_leidos_paciente = $conv->mensajes()
+                ->where('emisor', 'doctor')
+                ->where('leido', false)
+                ->count();
+            return $conv;
+        });
+
+    return response()->json($conversaciones);
+}
+
+
+
 }
