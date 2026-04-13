@@ -98,12 +98,19 @@ class MensajeController extends Controller
             'doctor_id' => 'required|integer'
         ]);
 
-        $paciente_id = $request->user()->id;
+        $paciente = $request->user();
+        $paciente_id = $paciente->id;
 
-        $conversacion = Conversacion::firstOrCreate([
-            'doctor_id' => $request->doctor_id,
-            'paciente_id' => $paciente_id
-        ]);
+        $conversacion = Conversacion::firstOrCreate(
+            [
+                'doctor_id' => $request->doctor_id,
+                'paciente_id' => $paciente_id,
+            ],
+            [
+                'paciente_nombre' => trim($paciente->nombre . ' ' . ($paciente->paterno ?? '')),
+                'paciente_tel' => $paciente->telefono,
+            ]
+        );
 
         return response()->json($conversacion);
     }

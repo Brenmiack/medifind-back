@@ -90,6 +90,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- 💻 PANEL DOCTOR (Web) ---
     Route::get('/doctor/dashboard', [DoctorController::class, 'dashboard']); // 🌟 ¡AGREGA ESTA LÍNEA! 🌟
     Route::get('/me', [AuthController::class, 'me']);
+    Route::delete('/cuenta', [AuthController::class, 'eliminarCuenta']);
     Route::get('/perfil',            [DoctorController::class, 'show']);
     Route::put('/perfil/actualizar', [AuthController::class, 'actualizarPerfil']);
     Route::post('/perfil/foto',      [AuthController::class, 'subirFoto']);
