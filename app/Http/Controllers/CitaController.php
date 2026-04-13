@@ -214,7 +214,18 @@ class CitaController extends Controller
 
         return response()->json(['mensaje' => 'Cita eliminada']);
     }
+public function cancelarDesdeApp(Request $request, $id)
+{
+    $cita = Cita::where('id', $id)
+                ->where('paciente_id', $request->user()->id)
+                ->where('estado', 'pendiente')
+                ->firstOrFail();
 
+    $cita->estado = 'cancelada';
+    $cita->save();
+
+    return response()->json(['mensaje' => 'Cita cancelada correctamente']);
+}
 
     // ==============================================================
     // NUEVA FUNCIÓN EXCLUSIVA PARA LA APP MÓVIL

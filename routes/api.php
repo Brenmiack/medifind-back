@@ -72,7 +72,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // --- 📅 CITAS Y RESEÑAS (App) ---
     Route::post('/app/citas',            [CitaController::class, 'storeDesdeApp']);
     Route::get('/app/mis-citas',         [CitaController::class, 'misCitasPaciente']);
-    Route::post('/app/cancelar-cita/{id}', [CitaController::class, 'destroy']); // <-- AGREGADA PARA EL BOTÓN ROJO
+    Route::post('/app/cancelar-cita/{id}', [CitaController::class, 'cancelarDesdeApp']);
+
     Route::post('/app/resenas',          [ResenaController::class, 'storeDesdeApp']);
     Route::get('/app/mis-resenas',       [ResenaController::class, 'misResenasPaciente']);
 
