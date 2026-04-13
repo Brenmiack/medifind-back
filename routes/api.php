@@ -105,4 +105,89 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/resenas',           [ResenaController::class, 'index']);
     Route::post('/resenas/{id}/responder', [ResenaController::class, 'responder']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   // =======================================================
+    // Rutas del Panel Admin (Demo)
+    // =======================================================
+    Route::prefix('admin')->group(function () {
+
+        // 1. Datos del Dashboard
+        Route::get('/dashboard', function () {
+            return response()->json([
+                'kpis' => ['especialistas_activos' => 12, 'usuarios_total' => 45, 'citas_total' => 128, 'pendientes_aprobacion' => 0],
+                'grafica_registros' => ['doctores' => ['Ene'=>2, 'Feb'=>5, 'Mar'=>12], 'pacientes' => ['Ene'=>10, 'Feb'=>20, 'Mar'=>45]],
+                'grafica_especialidades' => [['nombre'=>'Cardiología', 'total'=>15], ['nombre'=>'Pediatría', 'total'=>8]],
+                'pendientes' => [],
+                'actividad' => []
+            ]);
+        });
+
+        // 2. Lista de Doctores Reales
+        Route::get('/doctores', function () {
+            $doctores = \App\Models\Doctor::all()->map(function($doc) {
+                $doc->especialidad = 'Especialista'; // Simplificado para la vista
+                return $doc;
+            });
+            return response()->json([
+                'contadores' => ['todos' => count($doctores), 'aprobados' => count($doctores), 'pendientes' => 0, 'suspendidos' => 0],
+                'data' => $doctores,
+                'pagina' => 1, 'paginas' => 1, 'total' => count($doctores)
+            ]);
+        });
+
+        // 3. Lista de Pacientes Reales
+        Route::get('/pacientes', function () {
+            $pacientes = \App\Models\Paciente::all();
+            return response()->json([
+                'contadores' => ['total' => count($pacientes), 'activos' => count($pacientes), 'suspendidos' => 0],
+                'data' => $pacientes,
+                'pagina' => 1, 'paginas' => 1, 'total' => count($pacientes)
+            ]);
+        });
+
+        // 4. Especialidades Reales
+        Route::get('/especialidades', function () {
+            return response()->json(\App\Models\Especialidad::all());
+        });
+
+        // 5. Estadísticas Simuladas
+        Route::get('/estadisticas', function () {
+            return response()->json([
+                'mini_kpis' => ['calificacion_promedio' => 4.8, 'citas_total' => 128, 'citas_este_mes' => 24, 'tasa_aprobacion' => 98],
+                'crecimiento' => [],
+                'distribucion' => []
+            ]);
+        });
+
+        Route::get('/estadisticas/regiones', function () {
+            return response()->json([]);
+        });
+
+        Route::post('/logout', [AuthController::class, 'logout']);
+    }); 
 });
