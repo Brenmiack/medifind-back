@@ -48,9 +48,17 @@ class AuthController
 
         // 2. Verificar cédula en el Registro Nacional de Profesionistas (SEP)
         try {
+            $tokenApimarket = config('services.apimarket.token');
+
+            if (!$tokenApimarket) {
+                return response()->json([
+                    'mensaje' => 'Falta configurar APIMARKET_TOKEN para validar la cédula profesional.',
+                ], 503);
+            }
+
             $respuestaSEP = Http::timeout(10)
-                ->withToken('81339908-cf3f-456a-bb4b-761c02912fc6')
-                ->post('https://apimarket.mx/api/sep/grupo/validar-cedula', [
+                ->withToken($tokenApimarket)
+                ->post(config('services.apimarket.cedula_url'), [
                     'cedula' => $request->cedula,
                 ]);
 
